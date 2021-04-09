@@ -225,7 +225,8 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
         self.btnSelect.isUserInteractionEnabled = showSelBtn
         self.btnSelect.isSelected = self.model.isSelected
         
-        self.indexLabel.backgroundColor = .indexLabelBgColor
+        /// TYModify: Modify selected index background color
+        self.indexLabel.backgroundColor = zlRGB(54, 179, 116);
         
         if self.model.isSelected {
             self.fetchBigImage()

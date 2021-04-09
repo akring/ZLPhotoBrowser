@@ -64,6 +64,7 @@ class ZLPhotoPreviewController: UIViewController {
     var originalBtn: UIButton!
     
     var doneBtn: UIButton!
+    var doneBtnGradientLayer: CAGradientLayer!
     
     var selPhotoPreview: ZLPhotoPreviewSelectedView?
     
@@ -206,8 +207,9 @@ class ZLPhotoPreviewController: UIViewController {
         if selCount > 0 {
             doneTitle += "(" + String(selCount) + ")"
         }
-        let doneBtnW = doneTitle.boundingRect(font: ZLLayout.bottomToolTitleFont, limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 30)).width + 20
-        self.doneBtn.frame = CGRect(x: self.bottomView.bounds.width-doneBtnW-15, y: btnY, width: doneBtnW, height: btnH)
+        let doneBtnW = doneTitle.boundingRect(font: ZLLayout.bottomToolTitleFont, limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 30)).width + 44
+        self.doneBtn.frame = CGRect(x: self.bottomView.bounds.width-doneBtnW-15, y: btnY, width: doneBtnW, height: 40)
+        self.doneBtnGradientLayer.frame = self.doneBtn.bounds;
     }
     
     func setupUI() {
@@ -297,9 +299,25 @@ class ZLPhotoPreviewController: UIViewController {
             return btn
         }
         
+        /// TYModify: Custom confirm button creation
+        /// - Parameters:
+        ///   - title: Title
+        ///   - action: Acton
+        /// - Returns: UIButton
+        func ty_createBtn(_ title: String, _ action: Selector) -> UIButton {
+            let btn = UIButton(type: .custom)
+            btn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+            btn.setTitle(title, for: .normal)
+            btn.setTitleColor(.bottomToolViewBtnNormalTitleColor, for: .normal)
+            btn.setTitleColor(.bottomToolViewBtnNormalTitleColor, for: .disabled)
+            btn.addTarget(self, action: action, for: .touchUpInside)
+            return btn
+        }
+        
         self.editBtn = createBtn(localLanguageTextValue(.edit), #selector(editBtnClick))
         self.editBtn.isHidden = (!config.allowEditImage && !config.allowEditVideo)
-        self.bottomView.addSubview(self.editBtn)
+        /// TYModify: Remove 'Preview' button on bottom bar
+//        self.bottomView.addSubview(self.editBtn)
         
         self.originalBtn = createBtn(localLanguageTextValue(.originalPhoto), #selector(originalPhotoClick))
         self.originalBtn.setImage(getImage("zl_btn_original_circle"), for: .normal)
@@ -307,13 +325,21 @@ class ZLPhotoPreviewController: UIViewController {
         self.originalBtn.titleEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
         self.originalBtn.isHidden = !(config.allowSelectOriginal && config.allowSelectImage)
         self.originalBtn.isSelected = (self.navigationController as! ZLImageNavController).isSelectedOriginal
-        self.bottomView.addSubview(self.originalBtn)
+        /// TYModify: Remove 'Origin' button on bottom bar
+//        self.bottomView.addSubview(self.originalBtn)
         
-        self.doneBtn = createBtn(localLanguageTextValue(.done), #selector(doneBtnClick))
-        self.doneBtn.backgroundColor = .bottomToolViewBtnNormalBgColor
+        /// TYModify: Add gradient layer to 'Done' button
+        self.doneBtnGradientLayer = CAGradientLayer()
+        self.doneBtnGradientLayer.colors = [zlRGB(119, 211, 102).cgColor, zlRGB(1, 174, 133).cgColor]
+        self.doneBtnGradientLayer.locations = [0, 1]
+        
+        
+        self.doneBtn = ty_createBtn(localLanguageTextValue(.done), #selector(doneBtnClick))
         self.doneBtn.layer.masksToBounds = true
-        self.doneBtn.layer.cornerRadius = ZLLayout.bottomToolBtnCornerRadius
+        self.doneBtn.layer.cornerRadius = 20
+        self.doneBtn.layer.insertSublayer(self.doneBtnGradientLayer, at: 0)
         self.bottomView.addSubview(self.doneBtn)
+        
         
         self.view.bringSubviewToFront(self.navView)
     }

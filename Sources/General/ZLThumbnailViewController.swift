@@ -64,6 +64,7 @@ class ZLThumbnailViewController: UIViewController {
     var originalBtn: UIButton!
     
     var doneBtn: UIButton!
+    var doneBtnGradientLayer: CAGradientLayer!
     
     var arrDataSources: [ZLPhotoModel] = []
     
@@ -330,9 +331,25 @@ class ZLThumbnailViewController: UIViewController {
             return btn
         }
         
+        /// TYModify: Custom confirm button creation
+        /// - Parameters:
+        ///   - title: Title
+        ///   - action: Acton
+        /// - Returns: UIButton
+        func ty_createBtn(_ title: String, _ action: Selector) -> UIButton {
+            let btn = UIButton(type: .custom)
+            btn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+            btn.setTitle(title, for: .normal)
+            btn.setTitleColor(.bottomToolViewBtnNormalTitleColor, for: .normal)
+            btn.setTitleColor(.bottomToolViewBtnNormalTitleColor, for: .disabled)
+            btn.addTarget(self, action: action, for: .touchUpInside)
+            return btn
+        }
+        
         self.previewBtn = createBtn(localLanguageTextValue(.preview), #selector(previewBtnClick))
         self.previewBtn.isHidden = !ZLPhotoConfiguration.default().showPreviewButtonInAlbum
-        self.bottomView.addSubview(self.previewBtn)
+        /// TYModify: Remove 'Preview' button on bottom bar
+//        self.bottomView.addSubview(self.previewBtn)
         
         self.originalBtn = createBtn(localLanguageTextValue(.originalPhoto), #selector(originalPhotoClick))
         self.originalBtn.setImage(getImage("zl_btn_original_circle"), for: .normal)
@@ -340,11 +357,19 @@ class ZLThumbnailViewController: UIViewController {
         self.originalBtn.titleEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
         self.originalBtn.isHidden = !(ZLPhotoConfiguration.default().allowSelectOriginal && ZLPhotoConfiguration.default().allowSelectImage)
         self.originalBtn.isSelected = (self.navigationController as! ZLImageNavController).isSelectedOriginal
-        self.bottomView.addSubview(self.originalBtn)
+        /// TYModify: Remove 'Origin' button on bottom bar
+//        self.bottomView.addSubview(self.originalBtn)
         
-        self.doneBtn = createBtn(localLanguageTextValue(.done), #selector(doneBtnClick))
+        /// TYModify: Add gradient layer to 'Done' button
+        self.doneBtnGradientLayer = CAGradientLayer()
+        self.doneBtnGradientLayer.colors = [zlRGB(119, 211, 102).cgColor, zlRGB(1, 174, 133).cgColor]
+        self.doneBtnGradientLayer.locations = [0, 1]
+        
+        
+        self.doneBtn = ty_createBtn(localLanguageTextValue(.done), #selector(doneBtnClick))
         self.doneBtn.layer.masksToBounds = true
-        self.doneBtn.layer.cornerRadius = ZLLayout.bottomToolBtnCornerRadius
+        self.doneBtn.layer.cornerRadius = 20
+        self.doneBtn.layer.insertSublayer(self.doneBtnGradientLayer, at: 0)
         self.bottomView.addSubview(self.doneBtn)
         
         self.setupNavView()
@@ -660,12 +685,12 @@ class ZLThumbnailViewController: UIViewController {
             self.doneBtn.isEnabled = true
             let doneTitle = localLanguageTextValue(.done) + "(" + String(nav.arrSelectedModels.count) + ")"
             self.doneBtn.setTitle(doneTitle, for: .normal)
-            self.doneBtn.backgroundColor = .bottomToolViewBtnNormalBgColor
+//            self.doneBtn.backgroundColor = .bottomToolViewBtnNormalBgColor
         } else {
             self.previewBtn.isEnabled = false
             self.doneBtn.isEnabled = false
             self.doneBtn.setTitle(localLanguageTextValue(.done), for: .normal)
-            self.doneBtn.backgroundColor = .bottomToolViewBtnDisableBgColor
+//            self.doneBtn.backgroundColor = .bottomToolViewBtnDisableBgColor
         }
         self.originalBtn.isSelected = nav.isSelectedOriginal
         self.refreshDoneBtnFrame()
@@ -677,10 +702,12 @@ class ZLThumbnailViewController: UIViewController {
         if selCount > 0 {
             doneTitle += "(" + String(selCount) + ")"
         }
-        let doneBtnW = doneTitle.boundingRect(font: ZLLayout.bottomToolTitleFont, limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 30)).width + 20
+        let doneBtnW = doneTitle.boundingRect(font: UIFont.systemFont(ofSize: 16, weight: .medium),
+                                              limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 40)).width + 44
         
         let btnY = self.showLimitAuthTipsView ? ZLLimitedAuthorityTipsView.height + ZLLayout.bottomToolBtnY : ZLLayout.bottomToolBtnY
-        self.doneBtn.frame = CGRect(x: self.bottomView.bounds.width-doneBtnW-15, y: btnY, width: doneBtnW, height: ZLLayout.bottomToolBtnH)
+        self.doneBtn.frame = CGRect(x: self.bottomView.bounds.width-doneBtnW-15, y: btnY, width: doneBtnW, height: 40)
+        self.doneBtnGradientLayer.frame = self.doneBtn.bounds;
     }
     
     func scrollToBottom() {
@@ -1257,7 +1284,8 @@ class ZLEmbedAlbumListNavView: UIView {
         
         self.refreshTitleViewFrame()
         let cancelBtnW = localLanguageTextValue(.cancel).boundingRect(font: ZLLayout.navTitleFont, limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 44)).width
-        self.cancelBtn.frame = CGRect(x: insets.left+20, y: insets.top, width: cancelBtnW, height: 44)
+        /// TYModify: Move cancel button from left to right
+        self.cancelBtn.frame = CGRect(x: self.bounds.width - cancelBtnW - 14, y: insets.top, width: cancelBtnW, height: 44)
     }
     
     func refreshTitleViewFrame() {
